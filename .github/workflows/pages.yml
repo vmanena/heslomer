@@ -25,6 +25,12 @@ jobs:
         uses: actions/checkout@v4
       - name: Configure Pages
         uses: actions/configure-pages@v5
+      - name: Bundle MIT-licensed zxcvbn locally
+        run: |
+          npm install --prefix /tmp/heslomer-deps --no-audit --no-fund --ignore-scripts zxcvbn@4.4.2
+          mkdir -p vendor
+          cp /tmp/heslomer-deps/node_modules/zxcvbn/dist/zxcvbn.js vendor/zxcvbn.js
+          cp /tmp/heslomer-deps/node_modules/zxcvbn/LICENSE.txt vendor/ZXCVBN-LICENSE.txt
       - name: Upload static site
         uses: actions/upload-pages-artifact@v3
         with:
