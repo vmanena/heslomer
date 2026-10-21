@@ -33,4 +33,4 @@ Pokud vám Hesloměr pomáhá při výuce a chcete podpořit vznik dalších pod
 
 ---
 
-*Hesloměr je výuková pomůcka, nikoli nástroj pro ověřování skutečných přihlašovacích údajů.*
+*Hesloměr je výuková pomůcka, ne nástroj pro ověřování skutečných přihlašovacích údajů.*
