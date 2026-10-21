@@ -26,13 +26,38 @@ const fmt=n=>new Intl.NumberFormat('cs-CZ').format(n);
 const csTerms=['heslo','tajne','tajné','skola','škola','ucitel','učitel','praha','brno','ostrava','cesko','česko','rodina','laska','láska','kocka','kočka','pes','slunce','dovolena','dovolená','password','admin','vitame','vítáme','jmeno','jméno','ahoj','letni','letní','zima','podzim','jaro','leto','léto','student','maturita','informatika','pocitac','počítač','mobil','internet','bezpecnost','bezpečnost'];
 const attackRates={offline:1e9,online:10/3600}; // pokusů za sekundu
 function timeText(seconds){if(seconds<1)return 'méně než sekunda';if(!Number.isFinite(seconds)||seconds>31557600*1e12)return 'více než bilion let';const years=seconds/31557600;if(years>=1e6)return fmt(Math.round(years/1e6))+' milionů let';if(years>=1)return fmt(Math.round(years))+' let';const units=[[86400,'dní'],[3600,'hodin'],[60,'minut'],[1,'sekund']];for(const [s,label] of units)if(seconds>=s)return fmt(Math.round(seconds/s))+' '+label;return 'méně než sekunda';}
-function updatePassword(){const p=$('password').value;const attack=document.querySelector('input[name="attack"]:checked').value;$('scenarioLabel').textContent=attack==='offline'?'Orientační doba zkoušení při offline útoku':'Orientační doba zkoušení přes přihlašovací formulář';if(!p){$('time').textContent='—';$('strength').style.width='0';$('feedback').textContent='Zadejte ukázkové heslo.';return;}
-if(typeof window.zxcvbn!=='function'){$('time').textContent='Nedostupné';$('strength').style.width='0';$('feedback').textContent='Knihovna pro hodnocení hesel se nenačetla. Zkuste obnovit stránku.';return;}
+function explainPassword(result,p){
+const reasons=new Set();
+for(const part of result.sequence||[]){
+if(part.pattern==='dictionary'){
+if(part.dictionary_name==='user_inputs')reasons.add('Heslo obsahuje známý český výraz.');
+else if(part.dictionary_name==='passwords')reasons.add('Heslo obsahuje časté heslo nebo jeho část.');
+else if(['male_names','female_names','surnames'].includes(part.dictionary_name))reasons.add('Heslo obsahuje jméno nebo příjmení.');
+else reasons.add('Heslo obsahuje slovníkové slovo.');
+if(part.l33t)reasons.add('Záměny písmen za číslice a symboly jsou předvídatelné.');
+if(part.reversed)reasons.add('Obráceně napsané slovo není spolehlivá ochrana.');
+}
+if(part.pattern==='spatial')reasons.add('Heslo obsahuje klávesnicový vzor, například qwerty.');
+if(part.pattern==='sequence')reasons.add('Heslo obsahuje jednoduchou posloupnost znaků.');
+if(part.pattern==='repeat')reasons.add('Heslo obsahuje opakující se znaky nebo části.');
+if(part.pattern==='date')reasons.add('Heslo obsahuje datum.');
+if(part.pattern==='regex'&&part.regex_name==='recent_year')reasons.add('Heslo obsahuje snadno odhadnutelný letopočet.');
+}
+if(p.length<12)reasons.add('Heslo je kratší než 12 znaků.');
+if(!reasons.size)reasons.add('Nebyl rozpoznán výrazný známý vzor. Neznamená to ale záruku bezpečnosti.');
+const list=$('reasons');list.replaceChildren();
+for(const reason of [...reasons].slice(0,5)){const li=document.createElement('li');li.textContent=reason;list.appendChild(li);}
+$('advice').textContent=result.score<3?'Doporučení: zvolte delší, nepředvídatelné heslo nebo náhodně sestavenou heslovou frázi.':'Doporučení: používejte pro každý účet jiné heslo a zapněte vícefaktorové ověřování.';
+$('explanation').classList.remove('hidden');
+}
+function updatePassword(){const p=$('password').value;const attack=document.querySelector('input[name="attack"]:checked').value;$('scenarioLabel').textContent=attack==='offline'?'Orientační doba zkoušení při offline útoku':'Orientační doba zkoušení přes přihlašovací formulář';if(!p){$('explanation').classList.add('hidden');$('time').textContent='—';$('strength').style.width='0';$('feedback').textContent='Zadejte ukázkové heslo.';return;}
+if(typeof window.zxcvbn!=='function'){$('explanation').classList.add('hidden');$('time').textContent='Nedostupné';$('strength').style.width='0';$('feedback').textContent='Knihovna pro hodnocení hesel se nenačetla. Zkuste obnovit stránku.';return;}
 const expandedTerms=[...new Set([...csTerms,...(window.heslomerCzechWords||[]),'škola','školní','učitel','učitelka','žák','žákyně','třída','ředitel','ředitelka','písemka','zkouška','prázdniny','vysvědčení','bezpečnost','kyberbezpečnost','počítač','přihlášení','účet','uživatel','přítel','přítelkyně','rodina','štěstí','láska','měsíc','hvězda','déšť','sníh','moře','řeka','kůň','kočka','žirafa','nádraží','silnice','červený','žlutý','černý','bílý','dobrý','skvělý','nejlepší','narozeniny','vánoce','říjen','březen','červen','září','únor','česko','česká','český','české'])];
 const result=window.zxcvbn(p,expandedTerms);
 const seconds=result.guesses/attackRates[attack]/2;
 $('time').textContent=timeText(seconds);
 const score=result.score;
+explainPassword(result,p);
 $('strength').style.width=((score+1)*20)+'%';
 $('strength').style.background=score<=1?'#ba513f':score===2?'#d39a28':'#29836d';
 const descriptions=['Velmi snadno uhodnutelné','Snadno uhodnutelné','Středně odolné','Odolnější','Velmi odolné'];
