@@ -3,7 +3,7 @@ const fs=require('node:fs');
 const vm=require('node:vm');
 const assert=require('node:assert/strict');
 const html=fs.readFileSync('index.html','utf8');
-const inline=[...html.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/g)].map(x=>x[1]).filter(Boolean);
+const inline=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(x=>x[1]).filter(Boolean);
 assert.equal(inline.length,1,'Expected one inline app script');
 new vm.Script(inline[0],{filename:'index.html inline JS'});
 const ids=['password','time','strength','feedback','explanation','reasons','advice','pinInput','combinations','pinFeedback','kind','size','sizeLabel','generate','output','generatorNote','copy','presentation','scenarioLabel','randomPinExample','randomExample'];
