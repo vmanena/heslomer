@@ -79,7 +79,7 @@ const p=field.value;
 $('combinations').textContent=p?fmt(10**p.length):'—';
 if(!p){$('pinFeedback').textContent='Každá pozice má deset možností (0–9), včetně opakování a počátečních nul.';return;}
 const issues=[];
-if(/^(.)\\1+$/.test(p))issues.push('Všechny číslice jsou stejné. Takové PINy patří mezi první zkoušené.');
+if(/^(.)\1+$/.test(p))issues.push('Všechny číslice jsou stejné. Takové PINy patří mezi první zkoušené.');
 if(p.length>=3&&('01234567890123456789'.includes(p)||'98765432109876543210'.includes(p)))issues.push('PIN tvoří jednoduchá vzestupná nebo sestupná posloupnost.');
 if(p.length>=4&&p.length%2===0&&p.slice(0,p.length/2)===p.slice(p.length/2))issues.push('PIN obsahuje opakující se blok číslic.');
 if(['2580','0852','1470','1590','1235','4568','7890'].includes(p))issues.push('PIN připomíná snadný vzor na číselné klávesnici.');
