@@ -110,7 +110,6 @@ $('pinFeedback').textContent=(unique.length?'Pozor: '+unique.join(' '):'Nebyl ro
 $('pinInput').addEventListener('input',checkPin);
 document.querySelectorAll('[data-pin-example]').forEach(button=>button.addEventListener('click',()=>{$('pinInput').value=button.dataset.pinExample;checkPin();}));
 $('randomPinExample').addEventListener('click',()=>{$('pinInput').value=Array.from({length:6},()=>secureInt(10)).join('');checkPin();});
-const words=window.heslomerPhraseWords||[];
 function secureInt(max){if(!Number.isSafeInteger(max)||max<1)throw Error('Neplatný rozsah');const range=0x100000000;const limit=Math.floor(range/max)*max;const buf=new Uint32Array(1);let x;do{crypto.getRandomValues(buf);x=buf[0];}while(x>=limit);return x%max;}
 const pick=s=>s[secureInt(s.length)];
 function updateSize(){const k=$('kind').value,range=$('size');range.min=k==='phrase'?5:k==='pin'?4:12;range.max=k==='phrase'?12:k==='pin'?12:40;range.value=k==='phrase'?8:k==='pin'?6:20;$('sizeLabel').textContent=range.value+(k==='phrase'?' slov':k==='pin'?' číslic':' znaků');}
@@ -118,7 +117,7 @@ $('kind').addEventListener('change',updateSize);$('size').addEventListener('inpu
 $('generate').addEventListener('click',()=>{const k=$('kind').value,n=Number($('size').value);let value,note;
 if(k==='random'){const chars='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*-_';value=Array.from({length:n},()=>pick(chars)).join('');note='Náhodné znaky z kryptograficky bezpečného generátoru.';}
 else if(k==='pin'){value=Array.from({length:n},()=>secureInt(10)).join('');note=fmt(10**n)+' možných PINů při rovnoměrném náhodném výběru.';}
-else{if(!words.length){$('output').textContent='Slovník není dostupný';$('generatorNote').textContent='Nepodařilo se načíst český slovník. Obnovte stránku.';return;}value=Array.from({length:n},()=>pick(words)).join('-');note='Náhodně vybráno '+n+' slov ze slovníku o '+words.length+' slovech. Teoretická entropie: '+(n*Math.log2(words.length)).toFixed(1)+' bitů (při rovnoměrném výběru).';}
+else{const words=window.heslomerPhraseWords||[];if(!words.length){$('output').textContent='Slovník není dostupný';$('generatorNote').textContent='Nepodařilo se načíst český slovník. Obnovte stránku.';return;}value=Array.from({length:n},()=>pick(words)).join('-');note='Náhodně vybráno '+n+' slov ze slovníku o '+words.length+' slovech. Teoretická entropie: '+(n*Math.log2(words.length)).toFixed(1)+' bitů (při rovnoměrném výběru).';}
 $('output').textContent=value;$('generatorNote').textContent=note;});
 $('copy').addEventListener('click',async()=>{const v=$('output').textContent;if(!v||v==='Klikněte na Vygenerovat'||v==='Slovník není dostupný')return;try{await navigator.clipboard.writeText(v);$('generatorNote').textContent='Zkopírováno. Pozor na historii schránky.';}catch{$('generatorNote').textContent='Kopírování se nezdařilo. Označte text ručně.';}});
 $('presentation').addEventListener('click',()=>{document.body.classList.toggle('presentation');$('presentation').textContent=document.body.classList.contains('presentation')?'Ukončit prezentační režim':'Prezentační režim';});
